@@ -197,3 +197,6 @@ Phase 6:
 
 `Publicspeakingisveryeasy.126241207201b2149opekmq426135`
 > this is thor's ssh password
+
+In thor Home there is a turtle bot who draw `SLASH` on the screen, the readme wink us with a `digest` reference who leads us to hash the word and md5 is our key for the zaz kingdom
+
