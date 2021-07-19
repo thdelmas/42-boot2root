@@ -1,6 +1,8 @@
 #!/bin/bash
 
 VM_NAME='Boot2Root'
+VM_RAM="$((1024*1))"
+VM_VRAM='32'
 ISO_PATH='/sgoinfre/goinfre/ISO/BornToSecHackMe-v1.1.iso'
 
 if ! [ -e "$ISO_PATH" ]
@@ -12,6 +14,9 @@ fi
 if ! [ "$(vboxmanage list vms | grep "$VM_NAME")" ]
 then
 	VBoxManage createvm --name "$VM_NAME" --ostype 'Ubuntu_64' --register 
+	VBoxManage modifyvm "$VM_NAME" --memory "$VM_RAM" --vram "$VM_VRAM"
+	VBoxManage modifyvm "$VM_NAME" --graphicscontroller vmsvga
+	VBoxManage modifyvm "$VM_NAME" --nic1 hostonly --hostonlyadapter1 vboxnet0
 	VBoxManage storagectl "$VM_NAME" --name IDE --add ide
 	VBoxManage storageattach "$VM_NAME" --storagectl IDE --port 0 --device 0 --type dvddrive --medium "$ISO_PATH"
 else
