@@ -102,8 +102,30 @@ href/g' | cut -d "=" -f2 | sed '/^..*$/!d'
 From the web browser we can read a topic intitled "Probleme login?"
 `https://192.168.56.4/forum/index.php?id=6`
 
+We found inside 2 important data that we cannot guess, a username `lmezard` and a password `!q\]Ej?*5K5cy*AJ`
+
 We can see inside many log about failed connection try
 `curl --insecure 'https://192.168.56.4/forum/index.php?id=6' | grep 'Failed password'`
 
 We found a password but doesn't work on ssh
+
 We will try on the webmail service
+
+Doesn't work either
+
+Instead, if we try to login on the forum 
+
+It works for te user `lmezard`
+
+Now we are logged we can see that there is no real difference between the previous situation, exept for the user space
+
+Inside the user spae we found the lmezard's email,that's `laurie@borntosec.net`
+
+We can try to log to the webmail server at `webmail/src/login.php`
+
+It works with the same password
+
+There's a mail with db access
+
+We can connect to the phpmyadmin dashboard
+
