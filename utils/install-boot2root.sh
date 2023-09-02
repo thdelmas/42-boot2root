@@ -17,7 +17,7 @@ VM_VRAM='32'
 
 if ! [ -e "$ISO_PATH" ]
 then
-	smartprint INFO 'Downloading ISO'
+	smartprint INFO 'Downloading ISO\n'
 	curl -fsSL "$ISO_URL" -o "$ISO_PATH"
 fi
 
@@ -39,6 +39,7 @@ fi
 if ! [ "$(vboxmanage list runningvms | grep "$VM_NAME")" ]
 then
 	VboxManage startvm "$VM_NAME"
+	smartprint SUCCESS 'Downloading ISO\n'
 else
 	smartprint WARNING "VM with the name: ${VM_NAME} is already running\n"
 fi

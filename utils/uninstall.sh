@@ -28,7 +28,7 @@ done
 
 if ! [ "$(vboxmanage list vms | grep "$VM_NAME")" ]
 then
-	smartprint "ERROR" "$VM_NAME removed succesfully !\n"
+	smartprint "SUCCESS" "$VM_NAME removed succesfully !\n"
 else
-	printf "${TC_RED}Failed to remove the VM: ${VM_NAME}${TC_RESET}\n"
+	smartprint "ERROR" "Failed to remove the VM: ${VM_NAME}\n"
 fi
