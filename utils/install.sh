@@ -1,13 +1,22 @@
 #!/bin/bash
 
-VM_NAME='Boot2Root'
+ISO_PATH='/sgoinfre/Perso/thdelmas/ISO/BornToSecHackMe-v1.1.iso'
+ISO_URL='https://cdn.intra.42.fr/isos/BornToSecHackMe-v1.1.iso'
+
+if ! [ "$1" ];
+then
+	echo "Usage: $0 <VM_NAME>"
+	exit 1
+fi
+
+VM_NAME="$1"
 VM_RAM="$((1024*1))"
 VM_VRAM='32'
-ISO_PATH='/sgoinfre/goinfre/ISO/BornToSecHackMe-v1.1.iso'
 
 if ! [ -e "$ISO_PATH" ]
 then
-	curl -fsSL 'https://projects.intra.42.fr/uploads/document/document/2832/BornToSecHackMe-v1.1.iso' -o "$ISO_PATH"
+	echo 'Downloading ISO'
+	curl -fsSL "$ISO_URL" -o "$ISO_PATH"
 fi
 
 # Ensure VM exist or create it
@@ -16,7 +25,8 @@ then
 	VBoxManage createvm --name "$VM_NAME" --ostype 'Ubuntu_64' --register 
 	VBoxManage modifyvm "$VM_NAME" --memory "$VM_RAM" --vram "$VM_VRAM"
 	VBoxManage modifyvm "$VM_NAME" --graphicscontroller vmsvga
-	VBoxManage modifyvm "$VM_NAME" --nic1 hostonly --hostonlyadapter1 vboxnet0
+	VBoxManage setextradata global GUI/MaxGuestResolution any
+	VBoxManage modifyvm "$VM_NAME" --nic1 "nat"
 	VBoxManage storagectl "$VM_NAME" --name IDE --add ide
 	VBoxManage storageattach "$VM_NAME" --storagectl IDE --port 0 --device 0 --type dvddrive --medium "$ISO_PATH"
 else
