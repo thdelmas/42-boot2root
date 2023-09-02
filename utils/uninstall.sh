@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source "$(dirname $0)""/utils.sh"
+
 if ! [ "$1" ];
 then
 	echo "Usage: $0 <VM_NAME>"
@@ -8,12 +10,25 @@ fi
 
 VM_NAME="$1"
 
+UNREGISTER_TRIES="1"
+
+smartprint "WARNING" "Powering off ${VM_NAME} VM\n"
 # Ensure VM exist before deleting it
-if [ "$(vboxmanage list vms | grep "$VM_NAME")" ]
+while [ "$(vboxmanage list vms | grep "$VM_NAME")" ]
+do
+	VBoxManage controlvm "$VM_NAME" poweroff 2>/dev/null
+	sleep "$UNREGISTER_TRIES"
+	VBoxManage unregistervm "$VM_NAME" --delete-all 2>/dev/null
+	UNREGISTER_TRIES="$(($UNREGISTER_TRIES + 1))"
+	if [ "$UNREGISTER_TRIES" -gt 4 ]
+	then
+		smartprint "ERROR" "Failed to remove ${VM_NAME} VM\n"
+	fi
+done
+
+if ! [ "$(vboxmanage list vms | grep "$VM_NAME")" ]
 then
-	VBoxManage controlvm "$VM_NAME" poweroff &&
-	sleep 1 &&
-	VBoxManage unregistervm "$VM_NAME" --delete-all 
+	smartprint "ERROR" "$VM_NAME removed succesfully !\n"
 else
-	printf "${TC_RED}There is no VM with the name: ${VM_NAME}${TC_RESET}\n"
+	printf "${TC_RED}Failed to remove the VM: ${VM_NAME}${TC_RESET}\n"
 fi
