@@ -17,6 +17,14 @@ then
 	exit 1
 fi
 
+HOSTONLYNET_NAME="$(VBoxManage list hostonlynets | grep VBoxNetworkName | head -n1 | cut -d'-' -f2)"
+if ! [ -e "$HOSTONLYNET_NAME" ]
+then
+	./"$(dirname $0)""/create-vbox-hostonlynet.sh"
+	HOSTONLYNET_NAME="$(VBoxManage list hostonlynets | grep VBoxNetworkName | head -n1 | cut -d'-' -f2)"
+fi
+
+
 VM_NAME="$1"
 VM_RAM="$((1024*1))"
 VM_VRAM='32'
@@ -39,7 +47,7 @@ then
 	VBoxManage modifyvm "$VM_NAME" --memory "$VM_RAM" --vram "$VM_VRAM"
 	VBoxManage modifyvm "$VM_NAME" --graphicscontroller vmsvga
 	VBoxManage modifyvm "$VM_NAME" --nic1 "nat"
-	echo "-------"
+	VBoxManage modifyvm "$VM_NAME" --nic2 "hostonlynet" --host-only-net2 "$HOSTONLYNET_NAME"
 	VBoxManage storagectl "$VM_NAME" --name IDE --add ide
 	VBoxManage storageattach "$VM_NAME" --storagectl IDE --port 0 --device 0 --type hdd --medium "${DISK_PATH}"
 else

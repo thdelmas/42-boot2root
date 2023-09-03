@@ -1,0 +1,17 @@
+# Method 1
+
+## IP Discovering
+
+As we don't know the ip we need to scan the local network to know which host are presents
+
+To do so we'll use nmap
+
+```bash
+sudo nmap -A 192.168.56.0/24
+```
+
+and we get this output
+
+```
+
+```

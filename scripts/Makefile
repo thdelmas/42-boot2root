@@ -1,10 +1,10 @@
-NAME := "Boot2RootVM"
+NAME := "Boot2Root"
 
 all: $(NAME)
 
 $(NAME):
 	./utils/install-boot2root.sh $(NAME)
-	./utils/install-kali.sh $(NAME)
+	./utils/install-kali.sh Kali
 
 clean:
 	./utils/uninstall.sh $(NAME)
