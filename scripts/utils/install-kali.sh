@@ -26,7 +26,7 @@ fi
 
 
 VM_NAME="$1"
-VM_RAM="$((1024*1))"
+VM_RAM="$((1024*2))"
 VM_VRAM='32'
 
 if ! [ -e "$DISK_PATH" ]
