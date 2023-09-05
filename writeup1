@@ -126,4 +126,11 @@ We create a new database from where we can run SQL commands in order to crete a 
 
 Using dirbuster (takes a lot of time) we found a list of directory, trying them all one is writable: `/forum/templates_c'
 
+#### Filesystem investigation as www-data
 
+From,the reverse shell we can run commands, list the user and display their files
+> `ls -R /` is very efficient
+
+we've found this file `/home/LOOKATME/password` which contain `lmezard:G!@M6f4Eatau{sF"`
+
+We can now use this password to login through the shell
