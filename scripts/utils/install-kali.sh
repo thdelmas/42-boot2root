@@ -47,7 +47,7 @@ then
 	VBoxManage modifyvm "$VM_NAME" --memory "$VM_RAM" --vram "$VM_VRAM"
 	VBoxManage modifyvm "$VM_NAME" --graphicscontroller vmsvga
 	VBoxManage modifyvm "$VM_NAME" --nic1 "nat"
-	VBoxManage modifyvm "$VM_NAME" --nat-pf1="ssh,tcp,,2222,,22"
+	VBoxManage modifyvm "$VM_NAME" --nat-pf1="ssh,tcp,,42022,,22"
 	VBoxManage modifyvm "$VM_NAME" --nic2 "hostonlynet" --host-only-net2 "$HOSTONLYNET_NAME"
 	VBoxManage storagectl "$VM_NAME" --name IDE --add ide
 	VBoxManage storageattach "$VM_NAME" --storagectl IDE --port 0 --device 0 --type hdd --medium "${DISK_PATH}"
