@@ -134,3 +134,25 @@ From,the reverse shell we can run commands, list the user and display their file
 we've found this file `/home/LOOKATME/password` which contain `lmezard:G!@M6f4Eatau{sF"`
 
 We can now use this password to login through the shell
+
+### lmezard
+
+Once connected as lmezard, we can inspect the local files
+
+There's one named fun
+when displaying it we can see that it contains:
+- comments indicating files number
+- parts of a c programm
+- pcap extension
+
+Trying to open it with wireshark doesn't really help and displaying it isn't readable
+Using the command `file` we can identiffy the type of file 
+```
+fun: POSIX tar archive (GNU)
+```
+
+So we can extract the content and we get a lot of file `*.pcap` with random name
+However in each file we have a comment with the file number and a part of c code so we can do a script to rebuild the original file
+Then running the programm we built we get this message
+```
+```
