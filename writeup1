@@ -155,4 +155,88 @@ So we can extract the content and we get a lot of file `*.pcap` with random name
 However in each file we have a comment with the file number and a part of c code so we can do a script to rebuild the original file
 Then running the programm we built we get this message
 ```
+lmezard@BornToSecHackMe:~$ ./solution
+MY PASSWORD IS: Iheartpwnage
+Now SHA-256 it and submit
 ```
+
+the script will give 
+```
+pass file:
+Iheartpwnage
+Laurie password is:
+330b845f32185747e4f8ca15d40ca59796035c89ea809fb5d30f4da83ecf45a4
+```
+
+Now we can login with laurie
+
+### Laurie
+
+Once connected as laurie, in the home folder wer find a bomb to defuse, there's 6 levels to pass
+
+The readme give some tips
+```
+Diffuse this bomb!
+When you have all the password use it as "thor" user with ssh.
+
+HINT:
+P
+ 2
+ b
+
+o
+4
+
+NO SPACE IN THE PASSWORD (password is case sensitive).
+```
+
+Using command `strings` we can get some stranges strings
+- `nobo`
+- `PTRh`
+- `LWVS`
+- `\WVS`
+- `giants`
+- `austinpowers`
+- `isrveawhobpnutfg`
+
+#### GDB-PEDA
+
+We will decompile the program with gdb-peda
+- Disassembling phase_1 gives us `Public speaking is very easy.`
+- We need for that to put a break point on the instruction strings_not_equals
+
+##### Phase_1
+
+`Public speaking is very easy.`
+##### Phase_2
+
+```
+
+// 1
+
+// 2 = 2 * 1 = 2
+
+// 3 = 3 * 2 = 6
+
+// 4 = 4 * 6 = 24
+
+// 5 = 5 * 24 = 120
+
+// 6 = 6 * 120 = 720
+
+1 2 6 24 120 720
+```
+
+##### Phase_3
+
+We need to send an int a char and another int
+The two last one depends on the first one
+
+case 0: `0 q 777`
+case 1: `1 b 214`
+case 2: ``
+case 3: ``
+case 4: ``
+case 5: ``
+case 6: ``
+case 7: ``

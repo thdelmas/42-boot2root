@@ -35,11 +35,11 @@ then
 	VBoxManage modifyvm "$VM_NAME" --memory "$VM_RAM" --vram "$VM_VRAM"
 	VBoxManage setextradata global GUI/MaxGuestResolution any
 	VBoxManage modifyvm "$VM_NAME" --graphicscontroller vmsvga
-	VBoxManage modifyvm "$VM_NAME" --nic1 "nat"
-	VBoxManage modifyvm "$VM_NAME" --nat-pf1="ssh,tcp,,43022,,22"
-	VBoxManage modifyvm "$VM_NAME" --nat-pf1="http,tcp,,43080,,80"
-	VBoxManage modifyvm "$VM_NAME" --nat-pf1="https,tcp,,43443,,443"
-	VBoxManage modifyvm "$VM_NAME" --nic2 "hostonlynet" --host-only-net2 "$HOSTONLYNET_NAME"
+	VBoxManage modifyvm "$VM_NAME" --nic1 "hostonlynet" --host-only-net1 "$HOSTONLYNET_NAME"
+	VBoxManage modifyvm "$VM_NAME" --nic2 "nat"
+	VBoxManage modifyvm "$VM_NAME" --nat-pf2="ssh,tcp,,43022,,22"
+	VBoxManage modifyvm "$VM_NAME" --nat-pf2="http,tcp,,43080,,80"
+	VBoxManage modifyvm "$VM_NAME" --nat-pf2="https,tcp,,43443,,443"
 	VBoxManage storagectl "$VM_NAME" --name IDE --add ide
 	VBoxManage storageattach "$VM_NAME" --storagectl IDE --port 0 --device 0 --type dvddrive --medium "$ISO_PATH"
 else
