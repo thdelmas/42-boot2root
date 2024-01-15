@@ -12,7 +12,7 @@ then
 fi
 
 VM_NAME="$1"
-VM_RAM="$((1024*1))"
+VM_RAM="$((1024*4))"
 VM_VRAM='32'
 
 HOSTONLYNET_NAME="$(VBoxManage list hostonlynets | grep VBoxNetworkName | head -n1 | cut -d'-' -f2)"
